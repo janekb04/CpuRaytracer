@@ -21,6 +21,7 @@
 #define DO_THREAD_SYNC 1
 #define DO_MAIN_THREAD_SYNC 1
 
+// From https://www.iquilezles.org/www/articles/sfrand/sfrand.htm
 static float sfrand()
 {
     thread_local int seed = 0x00269ec3;
