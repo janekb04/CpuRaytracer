@@ -1,0 +1,3 @@
+add_executable(Engine "main.cpp" "array_wrapper.h" "window.h" "camera.h" "transform.h" "duplex.h" "ray.h")
+target_link_libraries(Engine PRIVATE glm)
+target_link_libraries(Engine PRIVATE minifb)

@@ -21,10 +21,13 @@
 #define DO_THREAD_SYNC 1
 #define DO_MAIN_THREAD_SYNC 1
 
-static float rand01() noexcept {
-    static std::uniform_real_distribution<float> distribution(0.0, 1.0);
-    static std::mt19937 generator{static_cast<unsigned>(rand())};
-    return distribution(generator);
+static float sfrand()
+{
+    thread_local int seed = 0x00269ec3;
+    float res;
+    seed *= 16807;
+    *((unsigned int*)&res) = (((unsigned int)seed) >> 9) | 0x40000000;
+    return(res - 3.0f);
 }
 
 static std::optional<float> hit_plane(const glm::vec3 &n, const glm::vec3 &p0, const ray &r) {
@@ -146,12 +149,11 @@ struct render_task_manager {
             const float weightOld = 1.0f - weightNew;
             const float pixelWidth = 1.0f / xMax;
             const float pixelHeight = 1.0f / yMax;
-            const float offsetX = rand01() * pixelWidth;
-            const float offsetY = rand01() * pixelHeight;
             for (int y = yBegin; y < yEnd; ++y) {
                 for (int x = xBegin; x < xEnd; ++x) {
-                    float u = x / xMax + offsetX;
-                    float v = y / yMax + offsetY;
+                    const float off = sfrand() * weightOld;
+                    const float u = x / xMax + off * pixelWidth;
+                    const float v = y / yMax + off * pixelHeight;
 
                     ray r{glm::vec3{0.0f, 0.0f, 0.0f}, glm::normalize(viewport.ray_from_uv(u, v))};
                     r.origin = VP * glm::vec4{r.origin, 1.0};
