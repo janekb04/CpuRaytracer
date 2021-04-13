@@ -22,9 +22,8 @@
 #define DO_MAIN_THREAD_SYNC 1
 
 // From https://www.iquilezles.org/www/articles/sfrand/sfrand.htm
-static float sfrand()
+static float sfrand(int& seed)
 {
-    thread_local int seed = 0x00269ec3;
     float res;
     seed *= 16807;
     *((unsigned int*)&res) = (((unsigned int)seed) >> 9) | 0x40000000;
@@ -136,6 +135,7 @@ struct render_task_manager {
         });
 #endif
 
+        int offset_seed = 0x00269ec3;
         while (should_run) {
             double time0 = now();
             const int yBegin = worker_scanline_count * idx;
@@ -152,7 +152,7 @@ struct render_task_manager {
             const float pixelHeight = 1.0f / yMax;
             for (int y = yBegin; y < yEnd; ++y) {
                 for (int x = xBegin; x < xEnd; ++x) {
-                    const float off = sfrand() * weightOld;
+                    const float off = sfrand(offset_seed) * weightOld;
                     const float u = x / xMax + off * pixelWidth;
                     const float v = y / yMax + off * pixelHeight;
 
