@@ -27,55 +27,6 @@ static float rand01() noexcept {
     return distribution(generator);
 }
 
-static bool check_cpu_features() noexcept {
-    using namespace simdpp;
-    auto present_features = cpu_features::GetX86Info().features;
-    auto required_features = static_cast<unsigned>(this_compile_arch());
-    if (required_features & static_cast<unsigned>(Arch::X86_SSE2) && !present_features.sse2) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_SSE3) && !present_features.sse3) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_SSSE3) && !present_features.ssse3) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_SSE4_1) && !present_features.sse4_1) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_POPCNT_INSN) && !present_features.popcnt) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_AVX) && !present_features.avx) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_AVX2) && !present_features.avx2) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_FMA3) && !present_features.fma3) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_FMA4) && !present_features.fma4) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_XOP)) {// XOP is deprecated
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_AVX512F) && !present_features.avx512f) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_AVX512BW) && !present_features.avx512bw) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_AVX512DQ) && !present_features.avx512dq) {
-        return false;
-    }
-    if (required_features & static_cast<unsigned>(Arch::X86_AVX512VL) && !present_features.avx512vl) {
-        return false;
-    }
-    return true;
-}
-
 static std::optional<float> hit_plane(const glm::vec3 &n, const glm::vec3 &p0, const ray &r) {
     float denom = glm::dot(n, glm::normalize(r.direction));
     if (denom > 1e-6) {
@@ -257,7 +208,6 @@ struct render_task_manager {
 
 
 int main() {
-    if (!check_cpu_features()) return EXIT_FAILURE;
     std::cout << std::setprecision(2) << std::fixed;
 
     window wnd("test", 800, 608);
