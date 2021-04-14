@@ -1,34 +1,25 @@
-#define SIMDPP_ARCH_X86_AVX2
-
 #define NOMINMAX
 
 #include <iostream>
-#include <chrono>
 #include <iomanip>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 #include <thread>
 #include <barrier>
 #include <mutex>
-#include <condition_variable>
-#include <random>
 #include <optional>
+
 #include "window.h"
-#include "camera.h"
+#include "camera_controller.h"
 #include "duplex.h"
 #include "ray.h"
+#include "utility.h"
+#include "viewport.h"
 
 // Config
 #define DO_THREAD_SYNC 1
 #define DO_MAIN_THREAD_SYNC 1
-
-// From https://www.iquilezles.org/www/articles/sfrand/sfrand.htm
-static float sfrand(int& seed)
-{
-    float res;
-    seed *= 16807;
-    *((unsigned int*)&res) = (((unsigned int)seed) >> 9) | 0x40000000;
-    return(res - 3.0f);
-}
 
 static std::optional<float> hit_plane(const glm::vec3 &n, const glm::vec3 &p0, const ray &r) {
     float denom = glm::dot(n, glm::normalize(r.direction));
@@ -82,47 +73,17 @@ static glm::vec4 ray_color(const ray &r) {
     return {(1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0};
 }
 
-struct viewport {
-    double aspect_ratio;
-    const double height = 2.0;
-    double width;
-    const double focal_length = 1.0;
-    const glm::vec3 origin{0, 0, 0};
-    glm::vec3 horizontal;
-    const glm::vec3 vertical{0, height, 0};
-    glm::vec3 lower_left_corner;
-
-    viewport() noexcept = default;
-
-    void update_from_window(const window &wnd) {
-        aspect_ratio = static_cast<double>(wnd.width()) / wnd.height();
-        width = aspect_ratio * height;
-        horizontal = {width, 0, 0};
-        lower_left_corner = origin - horizontal * 0.5f - vertical * 0.5f - glm::vec3{0, 0, focal_length};
-    }
-
-    glm::vec3 ray_from_uv(float u, float v) {
-        return glm::vec3(lower_left_corner + u * horizontal + v * vertical - origin);
-    }
-} viewport;
-
 struct render_task_manager {
     std::vector<std::thread> workers;
     size_t worker_count;
     window *wnd;
     transform trans;
-    orbit_camera cam{trans};
+    orbit_camera_controller cam{trans};
     size_t frameIdx = 0;
     bool should_run = true;
     duplex render_main_sync;
     std::atomic<double> productive_frame_time;
-
-    double (*now)() = +[]() {
-        return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::high_resolution_clock::now().time_since_epoch()).count()) / 1000.0;
-    };
-
-    double time = now();
+    double time = time_now();
     int worker_scanline_count;
 
     void render_task(size_t idx) {
@@ -137,7 +98,7 @@ struct render_task_manager {
 
         int offset_seed = 0x00269ec3;
         while (should_run) {
-            double time0 = now();
+            double time0 = time_now();
             const int yBegin = worker_scanline_count * idx;
             const int yEnd = yBegin + worker_scanline_count;
             const float yMax = wnd->height() - 1;
@@ -156,8 +117,10 @@ struct render_task_manager {
                     const float u = x / xMax + off * pixelWidth;
                     const float v = y / yMax + off * pixelHeight;
 
-                    ray r{glm::vec3{0.0f, 0.0f, 0.0f}, glm::normalize(viewport.ray_from_uv(u, v))};
-                    r.origin = VP * glm::vec4{r.origin, 1.0};
+                    ray r{
+                    	trans.get_position(),
+                    	glm::normalize(viewport.ray_from_uv(u, v))
+                    };
                     r.direction = VP * glm::vec4{r.direction, 0.0};
 
                     const glm::vec3 newColor = ray_color(r);
@@ -167,7 +130,7 @@ struct render_task_manager {
                     buffer[y][x] = pixel{finalColor};
                 }
             }
-            productive_frame_time += (now() - time0);
+            productive_frame_time += (time_now() - time0);
 #if DO_THREAD_SYNC == 1
             frame_border.arrive_and_wait();
 #endif
@@ -188,16 +151,16 @@ struct render_task_manager {
 #if DO_THREAD_SYNC == 1 && DO_MAIN_THREAD_SYNC == 1
             std::unique_lock lk(render_main_sync);
 #endif
-            double deltaTime = now() - time;
-            time = now();
+            double deltaTime = time_now() - time;
+            time = time_now();
             double framesPerSecond = 1.0 / deltaTime;
-            std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod: "
-                      << productive_frame_time * 1000.0 << "ms\n";
+            //std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod: "
+            //    << productive_frame_time * 1000.0 << "ms\n";
             productive_frame_time = 0.0;
             ++frameIdx;
 
             cam.update(*wnd, deltaTime);
-            viewport.update_from_window(*wnd);
+            viewport.resize(wnd->width(), wnd->height());
 
             should_run = wnd->update();
             worker_scanline_count = wnd->height() / worker_count;

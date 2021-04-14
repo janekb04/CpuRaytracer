@@ -1,9 +1,5 @@
-//
-// Created by Jan on 12-Apr-21.
-//
-
-#ifndef ENGINE_ARRAY_WRAPPER_H
-#define ENGINE_ARRAY_WRAPPER_H
+#ifndef ARRAY_WRAPPER_H
+#define ARRAY_WRAPPER_H
 
 #include <utility>
 
@@ -18,20 +14,21 @@ namespace detail {
     class array_wrapper_impl<T, std::index_sequence<First, Is...>> {
     public:
         constexpr static size_t rank = sizeof...(Is) + 1;
-        T *const data;
+        T* const data;
         const size_t product;
         const size_t extents[rank];
 
-        explicit array_wrapper_impl(T *data, size_t first, alwaysT<Is, size_t>... _extents) :
-                data{data},
-                product{(rank == 1 ? -1 : 0) + (_extents * ... * 1)},
-                extents{first, _extents...} {
+        explicit array_wrapper_impl(T* data, size_t first, alwaysT<Is, size_t>... _extents) :
+            data{ data },
+            product{ (rank == 1 ? -1 : 0) + (_extents * ... * 1) },
+            extents{ first, _extents... } {
         }
 
         decltype(auto) operator[](size_t idx) {
-            if constexpr(rank == 1) {
+            if constexpr (rank == 1) {
                 return data[idx];
-            } else {
+            }
+            else {
                 return array_wrapper<T, rank - 1>{data + product * idx, extents[Is]...};
             }
         }
@@ -41,4 +38,4 @@ namespace detail {
 template<typename T, std::size_t N>
 using array_wrapper = detail::array_wrapper<T, N>;
 
-#endif //ENGINE_ARRAY_WRAPPER_H
+#endif //ARRAY_WRAPPER_H

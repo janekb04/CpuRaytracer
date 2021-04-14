@@ -104,16 +104,16 @@ public:
         set_orientation(get_orientation() * rotation);
     }
 
-    [[nodiscard]] glm::vec3 forward() const noexcept {
-        return glm::normalize(to_mat4() * glm::vec4{0, 0, 1, 0});
-    }
-
     [[nodiscard]] glm::vec3 right() const noexcept {
-        return glm::normalize(to_mat4() * glm::vec4{1, 0, 0, 0});
+        return to_mat4()[0];
     }
 
     [[nodiscard]] glm::vec3 up() const noexcept {
-        return glm::normalize(to_mat4() * glm::vec4{0, 1, 0, 0});
+        return to_mat4()[1];
+    }
+
+    [[nodiscard]] glm::vec3 forward() const noexcept {
+        return to_mat4()[2];
     }
 };
 
