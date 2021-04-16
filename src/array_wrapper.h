@@ -6,7 +6,7 @@
 namespace detail {
     template<std::size_t, typename T> using alwaysT = T;
     template<typename T, typename Seq>
-    struct array_wrapper_impl;
+    class array_wrapper_impl;
     template<typename T, std::size_t N>
     using array_wrapper = array_wrapper_impl<T, std::make_index_sequence<N>>;
 

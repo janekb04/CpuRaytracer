@@ -9,7 +9,6 @@
 #include <condition_variable>
 
 class duplex {
-private:
     bool sub_thread_is_working = false;
     std::mutex m;
     std::condition_variable cv;
