@@ -35,7 +35,7 @@ class render_scheduler : public scheduler<render_scheduler> {
     };
     worker_data worker_init(size_t worker_idx)
     {
-        return { init_seed() };
+        return { init_seed() ^ static_cast<int>(worker_idx * 1321) };
     }
 	void worker_run(size_t worker_idx, worker_data& data)
     {
@@ -68,7 +68,6 @@ class render_scheduler : public scheduler<render_scheduler> {
                 fb_buffer[y][x] = finalColor;
             }
         }
-        std::cout << weightNew + weightOld << '\n';
     	
         productive_frame_time += (time_now() - time0);
     }
@@ -78,8 +77,8 @@ class render_scheduler : public scheduler<render_scheduler> {
 		auto deltaTime = time_now() - time;
         time = time_now();
 		auto framesPerSecond = 1.0 / deltaTime;
-        //std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod: "
-        //    << productive_frame_time * 1000.0 << "ms\n";
+        std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod: "
+            << productive_frame_time * 1000.0 << "ms\n";
         productive_frame_time = 0.0;
         ++frameIdx;
 

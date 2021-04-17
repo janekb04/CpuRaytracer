@@ -8,7 +8,7 @@
         std::chrono::high_resolution_clock::now().time_since_epoch()).count()) / 10e9;
 }
 
-[[nodiscard]] constexpr int init_seed() noexcept
+[[nodiscard]] int init_seed() noexcept
 {
     return 0x00269ec3;
 }

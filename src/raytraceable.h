@@ -18,7 +18,7 @@ public:
 	{
 		glm::vec3 normal;
 	};
-	std::unique_ptr<material> mat{ static_cast<material*>(new normal_debug_material()) };
+	std::unique_ptr<material> mat{ static_cast<material*>(new lambertian_material) };
 	
 	[[nodiscard]] std::optional<hit_info> intersect(const ray& r, float t_min, float t_max) const noexcept
 	{
@@ -72,12 +72,12 @@ class plane final : public raytraceable
 {
 public:
 	glm::vec3 position{};
-	glm::vec3 normal{0, 1, 0};
+	glm::vec3 normal{0, -1, 0};
 private:
 	[[nodiscard]] float _intersect(const ray& r) const noexcept override
 	{
 		const auto front_facing = dot(normal, r.direction);
-		if (front_facing > 0) 
+		if (front_facing < 0) 
 		{
 			const auto dir = position - r.origin;
 			const auto t = dot(dir, normal) / front_facing;

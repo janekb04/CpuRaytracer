@@ -14,7 +14,7 @@ class world
 	{
 		glm::vec3 position;
 		glm::vec3 normal;
-		glm::vec4 color;
+		glm::vec3 color;
 		std::optional<ray> scattered;
 	};
 	
@@ -41,20 +41,23 @@ class world
 		}
 
 		const auto geometry_info = hit_info.hit->hit(r, hit_info);
+		const auto normal = geometry_info.normal;
 		const auto position = r.at(hit_info.t);
+		const auto shade_info = hit_info.hit->mat->shade(
+			position,
+			normal,
+			r.direction,
+			seed
+		);
 		return {
 			position,
-			geometry_info.normal,
-			hit_info.hit->mat->shade(
-				position,
-				geometry_info.normal,
-				r.direction
-			),
-			ray(position,normalize(geometry_info.normal + random_unit_sphere_vector(seed)))
+			normal,
+			shade_info.attenuation,
+			shade_info.scattered
 		};
 	}
 public:
-	[[nodiscard]] glm::vec4 raytrace(const ray& r, int depth, int& seed) const noexcept
+	[[nodiscard]] glm::vec3 raytrace(const ray& r, int depth, int& seed) const noexcept
 	{
 		if (depth <= 0)
 			return glm::vec4(0, 0, 0, 1);
@@ -62,7 +65,7 @@ public:
 		const auto trace_result = trace_single(r, 0.001f, std::numeric_limits<float>::infinity(), seed);
 		if (trace_result.scattered)
 		{
-			return 0.5 * raytrace(*trace_result.scattered, depth - 1, seed);
+			return trace_result.color * raytrace(*trace_result.scattered, depth - 1, seed);
 		}
 		return trace_result.color;
 	}

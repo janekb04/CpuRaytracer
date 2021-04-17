@@ -1,49 +1,29 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 #include <glm/glm.hpp>
+#include "ray.h"
 
 class material
 {
 public:
-	[[nodiscard]] virtual glm::vec4 shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view) const noexcept = 0;
+	struct shade_info
+	{
+		glm::vec3 attenuation;
+		std::optional<ray> scattered;
+	};
+	[[nodiscard]] virtual shade_info shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept = 0;
 	virtual ~material() = default;
 };
-class normal_debug_material : public material
+class lambertian_material : public material
 {
-	[[nodiscard]] glm::vec4 shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view) const noexcept override
-	{
-		return 0.5f * glm::vec4(normal.x + 1, normal.y + 1, normal.z + 1, 2.0);
-	}
-};
-class pos_debug_material : public material
-{
-	[[nodiscard]] glm::vec4 shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view) const noexcept override
-	{
-		auto hit_point = abs(position);
-		hit_point -= glm::ivec3{ hit_point };
-		hit_point = abs(hit_point);
+	glm::vec3 albedo{0.7, 0.7, 0.7};
 
-		return {
-				static_cast<float>(hit_point.x >= 0.9 || hit_point.x <= 0.1),
-				static_cast<float>(hit_point.y >= 0.9 || hit_point.y <= 0.1),
-				static_cast<float>(hit_point.z >= 0.9 || hit_point.z <= 0.1),
-				1.0
-		};
-	}
-};
-class mirror_material : public material
-{
-	[[nodiscard]] glm::vec4 shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view) const noexcept override
+	[[nodiscard]] shade_info shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept override
 	{
-		auto hit_point = abs(position);
-		hit_point -= glm::ivec3{ hit_point };
-		hit_point = abs(hit_point);
-
+		const auto scatter_dir = normalize(normal + random_unit_sphere_vector(seed));
 		return {
-				static_cast<float>(hit_point.x >= 0.9 || hit_point.x <= 0.1),
-				static_cast<float>(hit_point.y >= 0.9 || hit_point.y <= 0.1),
-				static_cast<float>(hit_point.z >= 0.9 || hit_point.z <= 0.1),
-				1.0
+			albedo,
+			ray{position, scatter_dir}
 		};
 	}
 };
