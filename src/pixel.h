@@ -5,7 +5,7 @@ struct pixel {
     uint8_t b, g, r, a;
 private:
     using component_t = decltype(a);
-    constexpr static float conversion_factor = static_cast<float>(std::numeric_limits<component_t>::max()) - 0.001f;
+    constexpr static float conversion_factor = static_cast<float>(std::numeric_limits<component_t>::max());
 public:
     pixel() = default;
     constexpr pixel(component_t r, component_t g, component_t b, component_t a) noexcept :
