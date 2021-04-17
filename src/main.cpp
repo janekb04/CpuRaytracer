@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <optional>
+#include <algorithm>
 
 #include "window.h"
 #include "camera_controller.h"
@@ -40,8 +41,8 @@ class render_scheduler : public scheduler<render_scheduler> {
 	void worker_run(size_t worker_idx, worker_data& data)
     {
 	    auto time0 = time_now();
-        const int yBegin = worker_scanline_count * worker_idx;
-        const auto yEnd = yBegin + worker_scanline_count;
+        const unsigned yBegin = worker_scanline_count * worker_idx;
+    	const auto yEnd = std::min(yBegin + worker_scanline_count, wnd.height());
         const float yMax = wnd.height() - 1;
         const auto xBegin = 0;
         const int xEnd = wnd.width();
@@ -90,7 +91,7 @@ class render_scheduler : public scheduler<render_scheduler> {
             fb.update_size(wnd.width(), wnd.height());
     	}
     	
-        worker_scanline_count = wnd.height() / worker_count();
+        worker_scanline_count = wnd.height() / worker_count() + (wnd.height() % worker_count() > 0);
         return should_run;
     }
 public:
