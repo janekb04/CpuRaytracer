@@ -20,7 +20,7 @@ class world
 	
 	[[nodiscard]] static glm::vec4 backdrop(const glm::vec3& dir) noexcept
 	{
-		float t = 0.5 * (dir.y + 1.0);
+		const auto t = 0.5f * (dir.y + 1.0f);
 		return { (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0 };
 	}
 	[[nodiscard]] trace_result trace_single(const ray& r, float min_t, float max_t, int seed) const noexcept
@@ -62,7 +62,7 @@ public:
 		if (depth <= 0)
 			return glm::vec4(0, 0, 0, 1);
 		
-		const auto trace_result = trace_single(r, 0.001f, std::numeric_limits<float>::infinity(), seed);
+		const auto trace_result = trace_single(r, 0, std::numeric_limits<float>::infinity(), seed);
 		if (trace_result.scattered)
 		{
 			return trace_result.color * raytrace(*trace_result.scattered, depth - 1, seed);

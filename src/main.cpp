@@ -27,7 +27,7 @@ class render_scheduler : public scheduler<render_scheduler> {
     size_t frameIdx = 0;
     std::atomic<double> productive_frame_time;
     double time = time_now();
-    int worker_scanline_count;
+    int worker_scanline_count{};
 	
 	struct worker_data
     {
@@ -35,7 +35,7 @@ class render_scheduler : public scheduler<render_scheduler> {
     };
     worker_data worker_init(size_t worker_idx)
     {
-        return { init_seed() ^ static_cast<int>(worker_idx * 1321) };
+        return { init_seed() ^ static_cast<int>(worker_idx * 63748) };
     }
 	void worker_run(size_t worker_idx, worker_data& data)
     {
@@ -91,10 +91,13 @@ class render_scheduler : public scheduler<render_scheduler> {
     }
 public:
     render_scheduler() :
-        wnd{ "test", 800, 608 }
+        wnd{ "CPU Raytracer", 800, 608 }
     {
-        world_.add(new sphere{glm::vec3(0, -1, 0), 1});
-        world_.add(new plane);
+    }
+
+	void add(raytraceable* obj)
+    {
+        world_.add(obj);
     }
 };
 
@@ -102,7 +105,14 @@ public:
 int main() {
     std::cout << std::setprecision(2) << std::fixed;
 
-    render_scheduler mgr{};
+    render_scheduler mgr;
+
+    lambertian_material concrete{ {0.7f, 0.7f, 0.7f} };
+    lambertian_material floor{ {0.2f, 0.6f, 0.2f} };
+    metallic_material gold{ {	1.f, 0.84f, 0.f }, 0.2f };
+    mgr.add(new sphere(concrete, { 0, -1, 0 }, 1));
+    mgr.add(new sphere(gold, { 2, -1, 0 }, 1));
+    mgr.add(new plane(floor, { 0, 0, 0 }, { 0, -1, 0 }));
     mgr.run();
 
     return 0;

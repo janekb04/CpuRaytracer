@@ -10,7 +10,7 @@ class window {
     uint32_t m_height;
     std::unique_ptr<pixel[]> m_buffer;
     mfb_window* m_handle;
-    bool mouse_button_pressed[3]{};
+    bool mouse_button_pressed[8]{};
     float scrollDx{}, scrollDy{};
     bool pressed_keys[KB_KEY_LAST]{};
 

@@ -7,8 +7,8 @@
 
 class framebuffer
 {
-	std::unique_ptr<glm::vec4[]> m_buffer;
-	size_t m_width, m_height;
+	std::unique_ptr<glm::vec4[]> m_buffer{};
+	size_t m_width{}, m_height{};
 public:
 	void update_size(size_t new_width, size_t new_height)
 	{

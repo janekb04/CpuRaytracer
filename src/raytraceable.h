@@ -18,7 +18,12 @@ public:
 	{
 		glm::vec3 normal;
 	};
-	std::unique_ptr<material> mat{ static_cast<material*>(new lambertian_material) };
+	const material* mat;
+
+	raytraceable(const material& m) :
+		mat{ &m }
+	{
+	}
 	
 	[[nodiscard]] std::optional<hit_info> intersect(const ray& r, float t_min, float t_max) const noexcept
 	{
@@ -40,10 +45,11 @@ protected:
 class sphere final : public raytraceable
 {
 public:
-	glm::vec3 center{};
-	float radius{ 1.0f };
+	glm::vec3 center;
+	float radius;
 
-	sphere(const glm::vec3& center, float radius) :
+	sphere(const material& mat, const glm::vec3& center, float radius) :
+		raytraceable{mat},
 		center{ center },
 		radius{ radius }
 	{
@@ -71,8 +77,15 @@ private:
 class plane final : public raytraceable
 {
 public:
-	glm::vec3 position{};
-	glm::vec3 normal{0, -1, 0};
+	glm::vec3 position;
+	glm::vec3 normal;
+
+	plane(const material& mat, const glm::vec3& position, const glm::vec3& normal) :
+		raytraceable{mat},
+		position{position},
+		normal{normal}
+	{
+	}
 private:
 	[[nodiscard]] float _intersect(const ray& r) const noexcept override
 	{
