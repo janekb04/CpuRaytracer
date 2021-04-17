@@ -60,7 +60,7 @@ public:
 	[[nodiscard]] glm::vec3 raytrace(const ray& r, int depth, int& seed) const noexcept
 	{
 		if (depth <= 0)
-			return glm::vec4(0, 0, 0, 1);
+			return glm::vec3(0, 0, 0);
 		
 		const auto trace_result = trace_single(r, 0, std::numeric_limits<float>::infinity(), seed);
 		if (trace_result.scattered)

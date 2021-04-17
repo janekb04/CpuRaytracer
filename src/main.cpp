@@ -23,7 +23,7 @@ class render_scheduler : public scheduler<render_scheduler> {
     framebuffer fb;
     world world_;
     camera cam;
-    orbit_camera_controller cam_controller{cam.trans};
+    orbit_camera_controller cam_controller{cam};
     size_t frameIdx = 0;
     std::atomic<double> productive_frame_time;
     double time = time_now();
@@ -74,6 +74,8 @@ class render_scheduler : public scheduler<render_scheduler> {
 	
     bool main_run()
 	{
+        bool should_run = wnd.update();
+    	
 		auto deltaTime = time_now() - time;
         time = time_now();
 		auto framesPerSecond = 1.0 / deltaTime;
@@ -83,16 +85,19 @@ class render_scheduler : public scheduler<render_scheduler> {
         ++frameIdx;
 
         cam_controller.update(wnd, deltaTime);
-        cam.update(70.0f, wnd.width() / static_cast<float>(wnd.height()));
-        fb.update_size(wnd.width(), wnd.height());
+    	if (wnd.resized())
+    	{
+            fb.update_size(wnd.width(), wnd.height());
+    	}
     	
         worker_scanline_count = wnd.height() / worker_count();
-        return wnd.update();
+        return should_run;
     }
 public:
     render_scheduler() :
         wnd{ "CPU Raytracer", 800, 608 }
     {
+        fb.update_size(wnd.width(), wnd.height());
     }
 
 	void add(raytraceable* obj)
@@ -109,10 +114,10 @@ int main() {
 
     lambertian_material concrete{ {0.7f, 0.7f, 0.7f} };
     lambertian_material floor{ {0.2f, 0.6f, 0.2f} };
-    metallic_material gold{ {	1.f, 0.84f, 0.f }, 0.2f };
+    metallic_material shiny{ {	0.87f, 0.87f, 0.87f }, 0.f };
     mgr.add(new sphere(concrete, { 0, -1, 0 }, 1));
-    mgr.add(new sphere(gold, { 2, -1, 0 }, 1));
-    mgr.add(new plane(floor, { 0, 0, 0 }, { 0, -1, 0 }));
+    mgr.add(new sphere(shiny, { 2, -1, 0 }, 1));
+    mgr.add(new plane(shiny, { 0, 0, 0 }, { 0, -1, 0 }));
     mgr.run();
 
     return 0;

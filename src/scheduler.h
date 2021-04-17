@@ -13,7 +13,7 @@ class scheduler
 	{
 		scheduler& sch;
 		
-		void operator()() noexcept
+		void operator()() const noexcept
 		{
 			sch.render_main_sync.release();
 			static_cast<CRTP*>(&sch)->worker_sync();

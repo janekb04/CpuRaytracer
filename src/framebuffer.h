@@ -12,7 +12,6 @@ class framebuffer
 public:
 	void update_size(size_t new_width, size_t new_height)
 	{
-		if (new_width == m_width && new_height == m_height) return;
 		m_width = new_width;
 		m_height = new_height;
 		m_buffer = std::make_unique<glm::vec4[]>(m_width * m_height);

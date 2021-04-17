@@ -1,14 +1,14 @@
 #ifndef CAMERA_CONTROLLER_H
 #define CAMERA_CONTROLLER_H
 
-#include "transform.h"
-#include "window.h"
 #include <cmath>
+#include "window.h"
+#include "camera.h"
 
 class orbit_camera_controller {
     float lookSpeedH = 400;
     float lookSpeedV = 400;
-    float zoomSpeed = 0.1;
+    float fovChangeSpeed = 5.0;
     float dragSpeed = 170000;
     float exponent = 2;
     float flySpeed = 0.3;
@@ -16,7 +16,9 @@ class orbit_camera_controller {
     float yaw = 0;
     float pitch = 0;
 
-    transform& cam;
+    float fov = 70.0f;
+	
+    camera& cam;
     size_t frames_still_count = 0;
 
     static double sgn(double x) {
@@ -30,7 +32,7 @@ class orbit_camera_controller {
     }
 
 public:
-    explicit orbit_camera_controller(transform& cam) :
+    explicit orbit_camera_controller(camera& cam) :
         cam{ cam } {
     }
 
@@ -48,38 +50,39 @@ public:
         y = sgn(y) * pow(y / h, exponent);
 
         if (wnd.is_mouse_button_pressed(MOUSE_MIDDLE) && (x != 0 || y != 0)) {
-            cam.translate_local(glm::vec3{ -x, -y, 0 } *static_cast<float>(delta_time) * dragSpeed);
+            cam.trans.translate_local(glm::vec3{ -x, -y, 0 } * static_cast<float>(delta_time) * dragSpeed);
             moved = true;
         }
         if (wnd.is_mouse_button_pressed(MOUSE_RIGHT) && (x != 0 || y != 0)) {
             yaw += lookSpeedH * -x;
             pitch += lookSpeedV * y;
 
-            cam.set_orientation({ pitch, yaw, 0 });
+            cam.trans.set_orientation({ pitch, yaw, 0 });
             moved = true;
         }
 
         const float scroll = wnd.get_scroll();
         if (scroll != 0) {
-            cam.translate_local(glm::vec3{ 0, 0, -1 } * scroll * zoomSpeed);
+            fov -= scroll * fovChangeSpeed;
             moved = true;
         }
 
         glm::vec3 flyDir{};
-        if (wnd.is_key_pressed(mfb_key::KB_KEY_W)) flyDir.z += flySpeed;
-        if (wnd.is_key_pressed(mfb_key::KB_KEY_S)) flyDir.z -= flySpeed;
-        if (wnd.is_key_pressed(mfb_key::KB_KEY_A)) flyDir.x += flySpeed;
-        if (wnd.is_key_pressed(mfb_key::KB_KEY_D)) flyDir.x -= flySpeed;
-        if (wnd.is_key_pressed(mfb_key::KB_KEY_R)) flyDir.y += flySpeed;
-        if (wnd.is_key_pressed(mfb_key::KB_KEY_F)) flyDir.y -= flySpeed;
+        if (wnd.is_key_pressed('w')) flyDir.z += flySpeed;
+        if (wnd.is_key_pressed('s')) flyDir.z -= flySpeed;
+        if (wnd.is_key_pressed('a')) flyDir.x += flySpeed;
+        if (wnd.is_key_pressed('d')) flyDir.x -= flySpeed;
+        if (wnd.is_key_pressed('r')) flyDir.y += flySpeed;
+        if (wnd.is_key_pressed('f')) flyDir.y -= flySpeed;
     	if (flyDir.x != 0 || flyDir.y != 0 || flyDir.z != 0)
     	{
-            cam.translate_local(-flyDir);
+            cam.trans.translate_local(-flyDir);
             moved = true;
     	}
     	
-        if (moved) {
+        if (moved || wnd.resized()) {
             frames_still_count = 0;
+            cam.update(fov, wnd.width() / static_cast<float>(wnd.height()));
         }
         else {
             ++frames_still_count;

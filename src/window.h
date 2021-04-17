@@ -13,12 +13,14 @@ class window {
     bool mouse_button_pressed[8]{};
     float scrollDx{}, scrollDy{};
     bool pressed_keys[KB_KEY_LAST]{};
+    bool m_resized = false;
 
     static void resize(mfb_window* handle, int width, int height) {
         window& self = *static_cast<window*>(mfb_get_user_data(handle));
         self.m_width = width;
         self.m_height = height;
         self.m_buffer = std::make_unique<pixel[]>(width * height);
+        self.m_resized = true;
     }
 
     static void mouse_button(mfb_window* handle, mfb_mouse_button btn, mfb_key_mod mod, bool is_pressed) {
@@ -56,6 +58,7 @@ public:
     }
 
     bool update() {
+        m_resized = false;
         scrollDx = scrollDy = 0.0f;
         for (bool& key : pressed_keys) key = false;
         mfb_update_state state = mfb_update_ex(m_handle, m_buffer.get(), m_width, m_height);
@@ -66,9 +69,11 @@ public:
         mfb_wait_sync(m_handle);
     }
 
-    [[nodiscard]] uint32_t width() const { return m_width; };
+    [[nodiscard]] uint32_t width() const { return m_width; }
 
-    [[nodiscard]] uint32_t height() const { return m_height; };
+    [[nodiscard]] uint32_t height() const { return m_height; }
+
+    [[nodiscard]] bool resized() const { return m_resized; }
 
     [[nodiscard]] auto size() const { return std::tuple{ m_width, m_height }; }
 
@@ -78,7 +83,7 @@ public:
         return mouse_button_pressed[button];
     }
 
-	[[nodiscard]] bool is_key_pressed(mfb_key key) const
+	[[nodiscard]] bool is_key_pressed(int key) const
     {
         return pressed_keys[key];
     }
