@@ -100,5 +100,14 @@ Arithmetic fast_cos(Arithmetic x) noexcept
     *reinterpret_cast<int*>(&result.y) |= (seed & (1 << 24)) << 7; // randomly flip sign bit
     return result;
 }
-
+template <typename Vec>
+[[nodiscard]] typename Vec::value_type signed_length2(const Vec& v, const Vec& dir)
+{
+    return copysign(length2(v), dot(v, dir));
+}
+template <typename Vec>
+[[nodiscard]] typename Vec::value_type signed_length(const Vec& v, const Vec& dir)
+{
+    return copysign(length(v), dot(v, dir));
+}
 #endif // UTILITY_H

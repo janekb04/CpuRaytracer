@@ -1,7 +1,3 @@
-//
-// Created by Jan on 13-Apr-21.
-//
-
 #ifndef ENGINE_RAY_H
 #define ENGINE_RAY_H
 
@@ -14,5 +10,13 @@ struct ray {
         return origin + t * direction;
     }
 };
+
+inline ray operator*(const glm::mat4& trans, const ray& r) noexcept
+{
+    return ray{
+		trans * glm::vec4{r.origin, 1.0f},
+    	normalize(trans * glm::vec4{r.direction, 0.0f})
+    };
+}
 
 #endif //ENGINE_RAY_H

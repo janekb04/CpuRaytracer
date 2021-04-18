@@ -116,9 +116,8 @@ int main() {
     lambertian_material concrete{ {0.7f, 0.7f, 0.7f} };
     lambertian_material floor{ {0.2f, 0.6f, 0.2f} };
     metallic_material shiny{ {	0.87f, 0.87f, 0.87f }, 0.f };
-    mgr.add(new sphere(concrete, { 0, -1, 0 }, 1));
-    mgr.add(new sphere(shiny, { 2, -1, 0 }, 1));
-    mgr.add(new plane(shiny, { 0, 0, 0 }, { 0, -1, 0 }));
+    mgr.add(new sphere(shiny, transform{{0, -1, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-2, 1, 1}}));
+    mgr.add(new plane(shiny, transform{{0,0,0},{degToRad(5.0f), 0, 0},{1,1,1}}));
     mgr.run();
 
     return 0;

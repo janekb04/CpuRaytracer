@@ -47,7 +47,7 @@ public:
 private:
 	[[nodiscard]] shade_info shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept override
 	{
-		const auto scatter_dir = reflect(view, normal) + roughness * random_unit_sphere_vector(seed);
+		const auto scatter_dir = reflect(view, normal) + roughness * random_hemisphere_vector(seed);
 		return {
 			albedo,
 			ray{position, scatter_dir}

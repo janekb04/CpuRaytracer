@@ -23,12 +23,12 @@ class world
 		const auto t = 0.5f * (dir.y + 1.0f);
 		return { (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0 };
 	}
-	[[nodiscard]] trace_result trace_single(const ray& r, float min_t, float max_t, int seed) const noexcept
+	[[nodiscard]] trace_result trace_single(const ray& r, float min_t, float max_t, int& seed) const noexcept
 	{
-		raytraceable::hit_info hit_info{ max_t , nullptr };
+		raytraceable::hit_info hit_info{ max_t };
 		for (auto&& obj : objects)
 		{
-			hit_info = obj->intersect(r, min_t, hit_info.t).value_or(hit_info);
+			hit_info = obj->intersect(r, min_t, hit_info.depth).value_or(hit_info);
 		}
 		if (!hit_info.hit)
 		{
@@ -40,9 +40,9 @@ class world
 			};
 		}
 
-		const auto geometry_info = hit_info.hit->hit(r, hit_info);
+		const auto geometry_info = hit_info.hit->hit(hit_info);
 		const auto normal = geometry_info.normal;
-		const auto position = r.at(hit_info.t);
+		const auto position = hit_info.pos;
 		const auto shade_info = hit_info.hit->mat->shade(
 			position,
 			normal,
@@ -62,7 +62,7 @@ public:
 		if (depth <= 0)
 			return glm::vec3(0, 0, 0);
 		
-		const auto trace_result = trace_single(r, 0, std::numeric_limits<float>::infinity(), seed);
+		const auto trace_result = trace_single(r, 0.0000001f, std::numeric_limits<float>::infinity(), seed);
 		if (trace_result.scattered)
 		{
 			return trace_result.color * raytrace(*trace_result.scattered, depth - 1, seed);
