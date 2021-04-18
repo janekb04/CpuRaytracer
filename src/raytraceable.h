@@ -34,7 +34,7 @@ public:
 	}
 	
 	[[nodiscard]] std::optional<hit_info> intersect(const ray& r, float t_min, float t_max) const noexcept
-	{
+	{ // TODO: this function takes 75% of all processing time. optimize (maybe with SIMD??)
 		const auto transformed_ray = inv_trans * r;
 		auto t = _intersect(transformed_ray);
 		const auto local_pos = transformed_ray.at(t);
