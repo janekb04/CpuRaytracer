@@ -62,10 +62,11 @@ public:
 		if (depth <= 0)
 			return glm::vec3(0, 0, 0);
 		
-		const auto trace_result = trace_single(r, 0.0000001f, std::numeric_limits<float>::infinity(), seed);
+		const auto trace_result = trace_single(r, 0, std::numeric_limits<float>::infinity(), seed);
 		if (trace_result.scattered)
 		{
-			return trace_result.color * raytrace(*trace_result.scattered, depth - 1, seed);
+			const auto ray_origin = trace_result.scattered->origin + trace_result.scattered->direction * 0.005f;
+			return trace_result.color * raytrace(ray{ ray_origin, trace_result.scattered->direction }, depth - 1, seed);
 		}
 		return trace_result.color;
 	}
