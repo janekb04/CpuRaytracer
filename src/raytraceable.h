@@ -139,4 +139,26 @@ protected:
 		return std::nullopt;
 	}
 };
+
+template <typename Raytraceable>
+class single_sided : public Raytraceable
+{
+public:
+	using Raytraceable::Raytraceable;
+protected:
+	[[nodiscard]] std::optional<raytraceable::intersect_info> _intersect(const ray& r) const noexcept override
+	{
+		const auto intersect_info = plane::_intersect(r);
+		if (intersect_info)
+		{
+			const auto& [local_pos, front_facing] = *intersect_info;
+			if (front_facing)
+			{
+				return intersect_info;
+			}
+		}
+		return std::nullopt;
+	}
+};
+
 #endif // RAYTRACEABLE_H

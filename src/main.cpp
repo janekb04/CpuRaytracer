@@ -117,7 +117,7 @@ int main() {
     lambertian_material floor{ {0.2f, 0.6f, 0.2f} };
     metallic_material shiny{ {	1,1,1 }, 0.f };
     mgr.add(new sphere(concrete, transform{{0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-2, 1, 1}}));
-    mgr.add(new plane(concrete, transform{}));
+    mgr.add(new single_sided<plane>(concrete, transform{}));
 
     const auto right_portal_trans = transform{ {3,-2.f,-1},{degToRad(-45.0f), 0, degToRad(-90.0f)},{2,3,1} };
     const auto left_portal_trans = transform{ {-3,-2.f,-1},{degToRad(45.0f), 0, degToRad(-90.0f)},{2,3,1} };
