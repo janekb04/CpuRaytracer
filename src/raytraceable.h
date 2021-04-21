@@ -14,6 +14,7 @@ public:
 		float depth;
 		glm::vec3 pos;
 		glm::vec3 local_pos;
+		bool front_facing;
 		const raytraceable* hit;
 		ray transformed_ray;
 	};
@@ -36,26 +37,36 @@ public:
 	[[nodiscard]] std::optional<hit_info> intersect(const ray& r, float t_min, float t_max) const noexcept
 	{ // TODO: this function takes 75% of all processing time. optimize (maybe with SIMD??)
 		const auto transformed_ray = inv_trans * r;
-		const auto local_pos_opt = _intersect(transformed_ray);
+		const auto intersect_info = _intersect(transformed_ray);
 
-		if(local_pos_opt)
+		if(intersect_info)
 		{
-			const auto pos = glm::vec3{ trans.to_mat4() * glm::vec4{ *local_pos_opt, 1.0f } };
+			const auto& [local_pos, front_facing] = *intersect_info;
+			
+			const auto pos = glm::vec3{ trans.to_mat4() * glm::vec4{ local_pos, 1.0f } };
 			const auto depth = signed_length2(pos - r.origin, r.direction);
 			if (depth < t_min || depth > t_max)
 				return std::nullopt;
-			return hit_info{ depth, pos, *local_pos_opt, this, transformed_ray };
+			return hit_info{ depth, pos, local_pos, front_facing, this, transformed_ray };
 		}
 		
 		return std::nullopt;
 	}
 	[[nodiscard]] geometry_info hit(const hit_info& hit) const noexcept
 	{
-		return { normalize(trans.to_mat3() * _hit(hit)) };
+		auto normal = normalize(trans.to_mat3() * _hit(hit));
+		if (!hit.front_facing)
+			normal *= -1;
+		return { normal };
 	}
 	virtual ~raytraceable() = default;
 protected:
-	[[nodiscard]] virtual std::optional<glm::vec3> _intersect(const ray& r) const noexcept = 0;
+	struct intersect_info
+	{
+		glm::vec3 local_pos;
+		bool front_facing;
+	};
+	[[nodiscard]] virtual std::optional<intersect_info> _intersect(const ray& r) const noexcept = 0;
 	[[nodiscard]] virtual glm::vec3 _hit(const hit_info& hit) const noexcept = 0;
 };
 
@@ -64,7 +75,7 @@ class sphere final : public raytraceable
 public:
 	using raytraceable::raytraceable;
 protected:
-	[[nodiscard]] std::optional<glm::vec3> _intersect(const ray& r) const noexcept override
+	[[nodiscard]] std::optional<intersect_info> _intersect(const ray& r) const noexcept override
 	{
 		const auto oc = r.origin /* - center */;
 		const auto a = 1.0f;
@@ -75,7 +86,13 @@ protected:
 		if (discriminant < 0) {
 			return std::nullopt;
 		}
-		return r.at((-half_b - sqrt(discriminant)) / a);
+
+		const auto front_facing = length2(r.origin) >= 1.0f;
+		const auto sqrt_disc = front_facing ? -sqrt(discriminant) : sqrt(discriminant);
+		return intersect_info{
+			r.at((-half_b + sqrt_disc) / a),
+			front_facing
+		};
 	}
 	[[nodiscard]] glm::vec3 _hit(const hit_info& hit) const noexcept override
 	{
@@ -88,17 +105,15 @@ class plane : public raytraceable
 public:
 	using raytraceable::raytraceable;
 protected:
-	[[nodiscard]] std::optional<glm::vec3> _intersect(const ray& r) const noexcept override
+	[[nodiscard]] std::optional<intersect_info> _intersect(const ray& r) const noexcept override
 	{
-		const auto front_facing = -r.direction.y; // dot(normal, r.direction)
-		if (front_facing < 0) 
-		{
-			const auto dir = /* position */ -r.origin;
-			const auto t = -dir.y / front_facing; // dot(dir, normal) / front_facing
-			return r.at(t);
-		}
-
-		return std::nullopt;
+		const auto cos_theta = -r.direction.y; // dot(normal, r.direction)
+		const auto dir = /* position */ -r.origin;
+		const auto t = -dir.y / cos_theta; // dot(dir, normal) / front_facing
+		return intersect_info{
+			r.at(t),
+			cos_theta < 0.0f
+		};
 	}
 	[[nodiscard]] glm::vec3 _hit(const hit_info& hit) const noexcept override
 	{
@@ -110,14 +125,15 @@ class rectangle : public plane
 public:
 	using plane::plane;
 protected:
-	std::optional<glm::vec3> _intersect(const ray& r) const noexcept override
+	[[nodiscard]] std::optional<intersect_info> _intersect(const ray& r) const noexcept override
 	{
-		const auto pos_opt = plane::_intersect(r);
-		if (pos_opt)
+		const auto intersect_info = plane::_intersect(r);
+		if (intersect_info)
 		{
-			if (pos_opt->x >= -1 && pos_opt->x <= 1 && pos_opt->z >= -1 && pos_opt->z <= 1)
+			const auto& [local_pos, front_facing] = *intersect_info;
+			if (local_pos.x >= -1 && local_pos.x <= 1 && local_pos.z >= -1 && local_pos.z <= 1)
 			{
-				return pos_opt;
+				return intersect_info;
 			}
 		}
 		return std::nullopt;
