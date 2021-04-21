@@ -62,11 +62,8 @@ protected:
 class sphere final : public raytraceable
 {
 public:
-	sphere(const material& mat, const transform& trans) :
-		raytraceable{mat, trans}
-	{
-	}
-private:
+	using raytraceable::raytraceable;
+protected:
 	[[nodiscard]] std::optional<glm::vec3> _intersect(const ray& r) const noexcept override
 	{
 		const auto oc = r.origin /* - center */;
@@ -89,10 +86,7 @@ private:
 class plane : public raytraceable
 {
 public:
-	plane(const material& mat, const transform& trans) :
-		raytraceable{mat, trans}
-	{
-	}
+	using raytraceable::raytraceable;
 protected:
 	[[nodiscard]] std::optional<glm::vec3> _intersect(const ray& r) const noexcept override
 	{
@@ -109,6 +103,24 @@ protected:
 	[[nodiscard]] glm::vec3 _hit(const hit_info& hit) const noexcept override
 	{
 		return { 0, -1, 0}; // normal
+	}
+};
+class rectangle : public plane
+{
+public:
+	using plane::plane;
+protected:
+	std::optional<glm::vec3> _intersect(const ray& r) const noexcept override
+	{
+		const auto pos_opt = plane::_intersect(r);
+		if (pos_opt)
+		{
+			if (pos_opt->x >= -1 && pos_opt->x <= 1 && pos_opt->z >= -1 && pos_opt->z <= 1)
+			{
+				return pos_opt;
+			}
+		}
+		return std::nullopt;
 	}
 };
 #endif // RAYTRACEABLE_H
