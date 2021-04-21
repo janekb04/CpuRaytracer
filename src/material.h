@@ -54,4 +54,21 @@ private:
 		};
 	}
 };
+class portal_material : public material
+{
+	glm::mat4 from_to_transform;
+public:
+	portal_material(const transform& from, const transform& to) :
+		from_to_transform{to.to_mat4() * inverse(from.to_mat4())}
+	{
+	}
+private:
+	[[nodiscard]] shade_info shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept override
+	{
+		return {
+			glm::vec3{1,1,1},
+			from_to_transform * ray{position, view}
+		};
+	}
+};
 #endif // MATERIAL_H
