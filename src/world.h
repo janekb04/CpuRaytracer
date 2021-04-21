@@ -65,6 +65,7 @@ public:
 		const auto trace_result = trace_single(r, 0, std::numeric_limits<float>::infinity(), seed);
 		if (trace_result.scattered)
 		{
+			// TODO: currently due to the slightly translated ray origin artifacts occur at object intersections
 			const auto ray_origin = trace_result.scattered->origin + trace_result.scattered->direction * 0.005f;
 			return trace_result.color * raytrace(ray{ ray_origin, trace_result.scattered->direction }, depth - 1, seed);
 		}
