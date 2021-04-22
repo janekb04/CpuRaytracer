@@ -116,7 +116,7 @@ protected:
 		const auto ior_ratio = front_facing ? (1.0f / ior) : ior;
 
 		const auto cos_theta = dot(-view, normal);
-		const auto sin_theta = fast_sqrt(1.0f - cos_theta * cos_theta);
+		const auto sin_theta = sqrt(1.0f - cos_theta * cos_theta);
 
 		const bool cannot_refract = ior_ratio * sin_theta > 1.0f;
 		glm::vec3 direction;

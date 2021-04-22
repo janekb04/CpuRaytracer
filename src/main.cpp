@@ -118,8 +118,8 @@ int main() {
     metallic_material gold{ {	1.0f, 0.84f, 0.0f }, 0.2f };
     emmisive_material light{ glm::vec3{1,1,1} };
     dielectric_material glass{ 1.5f };
-    mgr.add(new sphere(glass, transform{ {0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-2, 1, 1} }));
-    mgr.add(new inverted_facing<sphere>(glass, transform{ {0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-1.9, 0.95, 0.95} }));
+    mgr.add(new sphere(glass, transform{ {0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {1, 1, 1} }));
+    mgr.add(new inverted_facing<sphere>(glass, transform{ {0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {0.95, 0.95, 0.95} }));
     mgr.add(new single_sided<plane>(concrete, transform{}));
 
     const auto right_portal_trans = transform{ {3,-2.f,-1},{degToRad(-45.0f), 0, degToRad(-90.0f)},{2,3,1} };

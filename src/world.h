@@ -73,7 +73,7 @@ public:
 		if (depth <= 0)
 			return glm::vec3(0, 0, 0);
 		
-		const auto trace_result = trace_single(r, 0.001f, std::numeric_limits<float>::infinity(), seed);
+		const auto trace_result = trace_single(r, 0, std::numeric_limits<float>::infinity(), seed);
 		if (trace_result.scattered)
 		{
 			// TODO: currently due to the slightly translated ray origin artifacts occur at object intersections
