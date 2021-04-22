@@ -21,9 +21,8 @@ class world
 	
 	[[nodiscard]] static glm::vec4 backdrop(const glm::vec3& dir) noexcept
 	{
-		//const auto t = 0.5f * (dir.y + 1.0f);
-		//return { (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0 };
-		return { 0,0,0,0 };
+		const auto t = 0.5f * (dir.y + 1.0f);
+		return { (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0 };
 	}
 	[[nodiscard]] trace_result trace_single(const ray& r, float min_t, float max_t, int& seed) const noexcept
 	{
@@ -50,12 +49,14 @@ class world
 			position,
 			normal,
 			r.direction,
+			hit_info.front_facing,
 			seed
 		);
 		const auto emission = hit_info.hit->mat->emission(
 			position,
 			normal,
 			r.direction,
+			hit_info.front_facing,
 			seed
 		);
 		return {

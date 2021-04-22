@@ -72,7 +72,7 @@ template<typename Arithmetic>
 Arithmetic fast_cos(Arithmetic x) noexcept
 {
 	// from https://stackoverflow.com/a/28050328/12501684
-    constexpr Arithmetic tp = 1. / (2. * pi);
+    constexpr Arithmetic tp{ 1.0L / (2.0L * pi) };
     x *= tp;
     x -= Arithmetic(.25) + std::floor(x + Arithmetic(.25));
     x *= Arithmetic(16.) * (std::abs(x) - Arithmetic(.5));
@@ -116,13 +116,18 @@ Arithmetic fast_cos(Arithmetic x) noexcept
     return { x, y };
 }
 template <typename Vec>
-[[nodiscard]] typename Vec::value_type signed_length2(const Vec& v, const Vec& dir)
+[[nodiscard]] typename Vec::value_type signed_length2(const Vec& v, const Vec& dir) noexcept
 {
     return copysign(length2(v), dot(v, dir));
 }
 template <typename Vec>
-[[nodiscard]] typename Vec::value_type signed_length(const Vec& v, const Vec& dir)
+[[nodiscard]] typename Vec::value_type signed_length(const Vec& v, const Vec& dir) noexcept
 {
     return copysign(length(v), dot(v, dir));
+}
+template <typename Arithmetic>
+Arithmetic sqr(const Arithmetic& x)
+{
+    return x * x;
 }
 #endif // UTILITY_H
