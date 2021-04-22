@@ -113,24 +113,24 @@ int main() {
 
     render_scheduler mgr;
 
-    lambertian_material concrete{ {0.7f, 0.7f, 0.7f} };
-    lambertian_material floor{ {0.2f, 0.6f, 0.2f} };
-    metallic_material gold{ {	1.0f, 0.84f, 0.0f }, 0.2f };
-    emmisive_material light{ glm::vec3{1,1,1} };
-    dielectric_material glass{ 1.5f };
-    mgr.add(new sphere(glass, transform{ {0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {1, 1, 1} }));
-    mgr.add(new inverted_facing<sphere>(glass, transform{ {0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {0.95, 0.95, 0.95} }));
-    mgr.add(new single_sided<plane>(concrete, transform{}));
+    lambertian_material floor{ {0.7, 0.7, 0.7} };
+    mgr.add(new single_sided<plane>(floor, transform{ {0, 0.05, 0}, {0,0,0}, {1,1,1} }));
 
-    const auto right_portal_trans = transform{ {3,-2.f,-1},{degToRad(-45.0f), 0, degToRad(-90.0f)},{2,3,1} };
-    const auto left_portal_trans = transform{ {-3,-2.f,-1},{degToRad(45.0f), 0, degToRad(-90.0f)},{2,3,1} };
-    //portal_material right_portal_mat{ right_portal_trans, left_portal_trans };
-    lambertian_material right_portal_mat{ { 0.7f, 0.2f, 0.2f } };
-    //portal_material left_portal_mat{ left_portal_trans, right_portal_trans };
-    lambertian_material left_portal_mat{ { 0.2f, 0.7f, 0.2f } };
+    dielectric_material glass{ 1.5f };
+    mgr.add(new sphere(glass, transform{ {1.1, -1, 0},{0, 0, 0}, {1, 1, 1} }));
+    mgr.add(new inverted_facing<sphere>(glass, transform{ {1.1, -1, 0},{0, 0, 0}, {0.95, 0.95, 0.95} }));
+
+    metallic_material gold{ {1.0f, 0.84f, 0.0f}, 0.0f };
+    mgr.add(new sphere{ gold, {{ -1.1, -1, 0 }, { 0,0,0 }, { 1,1,1 }} });
+
+    lambertian_material wall1{ {0.7, 0.3, 0.3} };
+    mgr.add(new rectangle(wall1, {{ 3, -1.45, -2 }, { degToRad(90.0f),degToRad(-45.0f),0 }, { 1,1,1.5 }}));
+    metallic_material wall2{ {0.95, 0.95, 0.95}, 0.03f };
+    mgr.add(new rectangle(wall2, { { -3, -1.45, -2 }, { degToRad(90.0f),degToRad(45.0f),0 }, { 1,1,1.5 } }));
+
+    lambertian_material blue{ {0.2, 0.2, 0.6} };
+    mgr.add(new sphere(blue, {{ 0, -5, -10 }, { 0, 0, 0 }, { 5, 5, 5 }}));
 	
-    mgr.add(new rectangle(right_portal_mat, right_portal_trans));
-    mgr.add(new rectangle(left_portal_mat, left_portal_trans));
     mgr.run();
 
     return 0;
