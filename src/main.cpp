@@ -61,7 +61,7 @@ class render_scheduler : public scheduler<render_scheduler> {
 
                 auto r = cam.get_ray(u, v);
 
-                const glm::vec3 newColor = world_.raytrace(r, 4, data.offset_seed);
+                const glm::vec3 newColor = world_.raytrace(r, 32, data.offset_seed);
                 const glm::vec4 oldColor{ fb_buffer[y][x] };
                 auto finalColor = glm::vec4(newColor * weightNew, 1.0) + oldColor * weightOld;
 
@@ -115,15 +115,20 @@ int main() {
 
     lambertian_material concrete{ {0.7f, 0.7f, 0.7f} };
     lambertian_material floor{ {0.2f, 0.6f, 0.2f} };
-    metallic_material shiny{ {	1,1,1 }, 0.f };
+    metallic_material gold{ {	1.0f, 0.84f, 0.0f }, 0.2f };
     emmisive_material light{ glm::vec3{1,1,1} };
-    mgr.add(new sphere(light, transform{{0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-2, 1, 1}}));
+    dielectric_material glass{ 1.5f };
+    //mgr.add(new sphere(glass, transform{ {0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-2, 1, 1} }));
+    mgr.add(new inverted_normal<sphere>(glass, transform{ {-1.1f, -1.f, 0},{0,0,0}, {1, 1, 1} }));
+    mgr.add(new sphere(gold, transform{ {1.1f, -1.f, 0},{0,0,0}, {1, 1, 1} }));
     mgr.add(new single_sided<plane>(concrete, transform{}));
 
     const auto right_portal_trans = transform{ {3,-2.f,-1},{degToRad(-45.0f), 0, degToRad(-90.0f)},{2,3,1} };
-    const auto left_portal_trans = transform{ {-3,-2.f,-1},{degToRad(45.0f+180), 0, degToRad(-90.0f)},{2,3,1} };
-    portal_material right_portal_mat{ right_portal_trans, left_portal_trans };
-    portal_material left_portal_mat{ left_portal_trans, right_portal_trans };
+    const auto left_portal_trans = transform{ {-3,-2.f,-1},{degToRad(45.0f), 0, degToRad(-90.0f)},{2,3,1} };
+    //portal_material right_portal_mat{ right_portal_trans, left_portal_trans };
+    lambertian_material right_portal_mat{ { 0.7f, 0.2f, 0.2f } };
+    //portal_material left_portal_mat{ left_portal_trans, right_portal_trans };
+    lambertian_material left_portal_mat{ { 0.2f, 0.7f, 0.2f } };
 	
     mgr.add(new rectangle(right_portal_mat, right_portal_trans));
     mgr.add(new rectangle(left_portal_mat, left_portal_trans));

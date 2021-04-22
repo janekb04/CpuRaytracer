@@ -70,7 +70,7 @@ protected:
 	[[nodiscard]] virtual glm::vec3 _hit(const hit_info& hit) const noexcept = 0;
 };
 
-class sphere final : public raytraceable
+class sphere : public raytraceable
 {
 public:
 	using raytraceable::raytraceable;
@@ -148,7 +148,7 @@ public:
 protected:
 	[[nodiscard]] std::optional<raytraceable::intersect_info> _intersect(const ray& r) const noexcept override
 	{
-		const auto intersect_info = plane::_intersect(r);
+		const auto intersect_info = Raytraceable::_intersect(r);
 		if (intersect_info)
 		{
 			const auto& [local_pos, front_facing] = *intersect_info;
@@ -158,6 +158,18 @@ protected:
 			}
 		}
 		return std::nullopt;
+	}
+};
+
+template <typename Raytraceable>
+class inverted_normal : public Raytraceable
+{
+public:
+	using Raytraceable::Raytraceable;
+protected:
+	[[nodiscard]] glm::vec3 _hit(const raytraceable::hit_info& hit) const noexcept override
+	{
+		return -Raytraceable::_hit(hit);
 	}
 };
 

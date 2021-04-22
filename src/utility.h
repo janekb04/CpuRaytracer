@@ -116,13 +116,21 @@ Arithmetic fast_cos(Arithmetic x) noexcept
     return { x, y };
 }
 template <typename Vec>
-[[nodiscard]] typename Vec::value_type signed_length2(const Vec& v, const Vec& dir)
+[[nodiscard]] typename Vec::value_type signed_length2(const Vec& v, const Vec& dir) noexcept
 {
     return copysign(length2(v), dot(v, dir));
 }
 template <typename Vec>
-[[nodiscard]] typename Vec::value_type signed_length(const Vec& v, const Vec& dir)
+[[nodiscard]] typename Vec::value_type signed_length(const Vec& v, const Vec& dir) noexcept
 {
     return copysign(length(v), dot(v, dir));
+}
+
+[[nodiscard]] inline glm::vec3 refract(const glm::vec3& v, const glm::vec3& normal, float ior) noexcept
+{
+    const auto cos_theta = fmin(dot(-v, normal), 1.0f);
+    const auto r_out_perp = ior * (v + cos_theta * normal);
+    const auto r_out_parallel = -sqrt(fabs(1.0f - dot(r_out_perp, r_out_perp))) * normal;
+    return r_out_perp + r_out_parallel;
 }
 #endif // UTILITY_H
