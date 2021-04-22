@@ -119,7 +119,7 @@ protected:
 
 		if (cannot_refract || reflectance(cos_theta, refraction_ratio) > frand(seed))
 			direction = reflect(view, normal);
-		else // TODO: make it work for hollow spheres
+		else
 			direction = ::refract(view, normal, refraction_ratio);
 		
 		return {

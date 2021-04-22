@@ -162,11 +162,23 @@ protected:
 };
 
 template <typename Raytraceable>
-class inverted_normal : public Raytraceable
+class inverted_facing : public Raytraceable
 {
 public:
 	using Raytraceable::Raytraceable;
 protected:
+	[[nodiscard]] std::optional<raytraceable::intersect_info> _intersect(const ray& r) const noexcept override
+	{
+		const auto intersect_info = Raytraceable::_intersect(r);
+		if (intersect_info)
+		{
+			return raytraceable::intersect_info{
+				intersect_info->local_pos,
+				!intersect_info->front_facing
+			};
+		}
+		return std::nullopt;
+	}
 	[[nodiscard]] glm::vec3 _hit(const raytraceable::hit_info& hit) const noexcept override
 	{
 		return -Raytraceable::_hit(hit);
