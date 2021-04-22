@@ -2,6 +2,7 @@
 #define MATERIAL_H
 #include <glm/glm.hpp>
 #include "ray.h"
+#include "utility.h"
 
 class material
 {
@@ -100,27 +101,30 @@ protected:
 class dielectric_material : public material
 {
 public:
-	float ior;
-
+	const float ior;
+private:
+	const float f0;
+public:
 	dielectric_material(const float ior) :
-		ior{ior}
+		ior{ior},
+		f0{ sqr((1.0f - ior) / (1.0f + ior)) }
 	{
 	}
 protected:
 	[[nodiscard]] shade_info shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, bool front_facing, int& seed) const noexcept override
 	{
-		const auto refraction_ratio = front_facing ? (1.0f / ior) : ior;
+		const auto ior_ratio = front_facing ? (1.0f / ior) : ior;
 
-		const auto cos_theta = fmin(dot(-view, normal), 1.0f);
-		const auto sin_theta = sqrt(1.0f - cos_theta * cos_theta);
+		const auto cos_theta = dot(-view, normal);
+		const auto sin_theta = fast_sqrt(1.0f - cos_theta * cos_theta);
 
-		bool cannot_refract = refraction_ratio * sin_theta > 1.0f;
+		const bool cannot_refract = ior_ratio * sin_theta > 1.0f;
 		glm::vec3 direction;
 
-		if (cannot_refract || reflectance(cos_theta, refraction_ratio) > frand(seed))
+		if (cannot_refract || reflectance(cos_theta) > frand(seed))
 			direction = reflect(view, normal);
 		else
-			direction = ::refract(view, normal, refraction_ratio);
+			direction = refract(view, normal, ior_ratio);
 		
 		return {
 			glm::vec3{1,1,1},
@@ -128,11 +132,9 @@ protected:
 		};
 	}
 private:
-	static double reflectance(float cosine, float ref_idx) {
-		// Use Schlick's approximation for reflectance.
-		auto r0 = (1 - ref_idx) / (1 + ref_idx);
-		r0 = r0 * r0;
-		return r0 + (1 - r0) * pow((1 - cosine), 5);
+	[[nodiscard]] float reflectance(const float cosine) const noexcept
+	{
+		return f0 + (1.0f - f0) * powf((1.0f - cosine), 5);
 	}
 };
 #endif // MATERIAL_H

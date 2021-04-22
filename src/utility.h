@@ -72,7 +72,7 @@ template<typename Arithmetic>
 Arithmetic fast_cos(Arithmetic x) noexcept
 {
 	// from https://stackoverflow.com/a/28050328/12501684
-    constexpr Arithmetic tp = 1. / (2. * pi);
+    constexpr Arithmetic tp{ 1.0L / (2.0L * pi) };
     x *= tp;
     x -= Arithmetic(.25) + std::floor(x + Arithmetic(.25));
     x *= Arithmetic(16.) * (std::abs(x) - Arithmetic(.5));
@@ -125,12 +125,9 @@ template <typename Vec>
 {
     return copysign(length(v), dot(v, dir));
 }
-
-[[nodiscard]] inline glm::vec3 refract(const glm::vec3& v, const glm::vec3& normal, float ior) noexcept
+template <typename Arithmetic>
+Arithmetic sqr(const Arithmetic& x)
 {
-    const auto cos_theta = fmin(dot(-v, normal), 1.0f);
-    const auto r_out_perp = ior * (v + cos_theta * normal);
-    const auto r_out_parallel = -sqrt(fabs(1.0f - dot(r_out_perp, r_out_perp))) * normal;
-    return r_out_perp + r_out_parallel;
+    return x * x;
 }
 #endif // UTILITY_H
