@@ -116,11 +116,12 @@ int main() {
     lambertian_material concrete{ {0.7f, 0.7f, 0.7f} };
     lambertian_material floor{ {0.2f, 0.6f, 0.2f} };
     metallic_material shiny{ {	1,1,1 }, 0.f };
-    mgr.add(new sphere(concrete, transform{{0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-2, 1, 1}}));
+    emmisive_material light{ glm::vec3{1,1,1} };
+    mgr.add(new sphere(light, transform{{0, -1.4, 0},{degToRad(45.0f), degToRad(45.0f), degToRad(45.0f)}, {-2, 1, 1}}));
     mgr.add(new single_sided<plane>(concrete, transform{}));
 
     const auto right_portal_trans = transform{ {3,-2.f,-1},{degToRad(-45.0f), 0, degToRad(-90.0f)},{2,3,1} };
-    const auto left_portal_trans = transform{ {-3,-2.f,-1},{degToRad(45.0f), 0, degToRad(-90.0f)},{2,3,1} };
+    const auto left_portal_trans = transform{ {-3,-2.f,-1},{degToRad(45.0f+180), 0, degToRad(-90.0f)},{2,3,1} };
     portal_material right_portal_mat{ right_portal_trans, left_portal_trans };
     portal_material left_portal_mat{ left_portal_trans, right_portal_trans };
 	

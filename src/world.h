@@ -15,13 +15,15 @@ class world
 		glm::vec3 position;
 		glm::vec3 normal;
 		glm::vec3 color;
+		glm::vec3 emission;
 		std::optional<ray> scattered;
 	};
 	
 	[[nodiscard]] static glm::vec4 backdrop(const glm::vec3& dir) noexcept
 	{
-		const auto t = 0.5f * (dir.y + 1.0f);
-		return { (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0 };
+		//const auto t = 0.5f * (dir.y + 1.0f);
+		//return { (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0 };
+		return { 0,0,0,0 };
 	}
 	[[nodiscard]] trace_result trace_single(const ray& r, float min_t, float max_t, int& seed) const noexcept
 	{
@@ -36,6 +38,7 @@ class world
 				{},
 				{},
 				backdrop(r.direction),
+				glm::vec3{0, 0, 0},
 				std::nullopt
 			};
 		}
@@ -49,10 +52,17 @@ class world
 			r.direction,
 			seed
 		);
+		const auto emission = hit_info.hit->mat->emission(
+			position,
+			normal,
+			r.direction,
+			seed
+		);
 		return {
 			position,
 			normal,
 			shade_info.attenuation,
+			emission,
 			shade_info.scattered
 		};
 	}
@@ -67,7 +77,7 @@ public:
 		{
 			// TODO: currently due to the slightly translated ray origin artifacts occur at object intersections
 			const auto ray_origin = trace_result.scattered->origin + trace_result.scattered->direction * 0.005f;
-			return trace_result.color * raytrace(ray{ ray_origin, trace_result.scattered->direction }, depth - 1, seed);
+			return trace_result.emission + trace_result.color * raytrace(ray{ ray_origin, trace_result.scattered->direction }, depth - 1, seed);
 		}
 		return trace_result.color;
 	}

@@ -12,6 +12,10 @@ public:
 		std::optional<ray> scattered;
 	};
 	[[nodiscard]] virtual shade_info shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept = 0;
+	[[nodiscard]] virtual glm::vec3 emission(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept
+	{
+		return glm::vec3{ 0, 0, 0 };
+	}
 	virtual ~material() = default;
 };
 class lambertian_material : public material
@@ -69,6 +73,28 @@ private:
 			glm::vec3{1,1,1},
 			from_to_transform * ray{position, view}
 		};
+	}
+};
+class emmisive_material : public material
+{
+public:
+	glm::vec3 color;
+
+	emmisive_material(const glm::vec3& color) :
+		color{ color }
+	{
+	}
+protected:
+	[[nodiscard]] shade_info shade(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept override
+	{
+		return {
+			glm::vec3{1,1,1},
+			std::nullopt
+		};
+	}
+	[[nodiscard]] glm::vec3 emission(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& view, int& seed) const noexcept override
+	{
+		return color;
 	}
 };
 #endif // MATERIAL_H
