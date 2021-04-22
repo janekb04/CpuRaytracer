@@ -100,6 +100,21 @@ Arithmetic fast_cos(Arithmetic x) noexcept
     *reinterpret_cast<int*>(&result.y) |= (seed & (1 << 24)) << 7; // randomly flip sign bit
     return result;
 }
+[[nodiscard]] inline glm::vec2 random_unit_disk_vector(int& seed) noexcept
+{
+    const auto r = fast_sqrt(frand(seed));
+    const auto phi = frand(seed) * 2.0f * static_cast<float>(pi);
+	
+    const auto cos_phi = fast_cos(phi);
+    auto sin_phi = fast_sqrt(1.0f - cos_phi * cos_phi);
+    if (phi > static_cast<float>(pi))
+        sin_phi *= -1;
+
+    const auto x = r * cos_phi;
+    const auto y = r * sin_phi;
+
+    return { x, y };
+}
 template <typename Vec>
 [[nodiscard]] typename Vec::value_type signed_length2(const Vec& v, const Vec& dir)
 {
