@@ -10,3 +10,5 @@ Currently the following materials have been implemented:
  - Emmissive (light)
  - Portal (like in that game)
  - Dielectric (glass)
+
+ Some glitches have occured along the way, while implementing. If you're interested in seeing those, some images are in the `glitches` folder.
