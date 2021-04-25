@@ -20,7 +20,7 @@ private:
     }
 
     static void make_rot_matrix(const glm::quat &rot, const glm::vec3 &scale, glm::mat4 &trans) noexcept {
-        glm::mat3 rotation = glm::toMat3(rot);
+        glm::mat3 rotation = toMat3(rot);
         trans[0] = glm::vec4{rotation[0], 0.0f} * scale.x;
         trans[1] = glm::vec4{rotation[1], 0.0f} * scale.y;
         trans[2] = glm::vec4{rotation[2], 0.0f} * scale.z;
