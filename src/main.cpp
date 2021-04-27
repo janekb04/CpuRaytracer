@@ -7,6 +7,8 @@
 #include <glm/ext.hpp>
 #include <optional>
 #include <algorithm>
+#include <array>
+#include <filesystem>
 
 #include "window.h"
 #include "camera_controller.h"
@@ -16,6 +18,7 @@
 #include "framebuffer.h"
 #include "scheduler.h"
 #include "world.h"
+#include "save_render_dialog.h"
 
 class render_scheduler : public scheduler<render_scheduler> {
     friend class scheduler<render_scheduler>;
@@ -62,8 +65,8 @@ class render_scheduler : public scheduler<render_scheduler> {
                 auto r = cam.get_ray(u, v);
 
                 const glm::vec3 newColor = world_.raytrace(r, 32, data.offset_seed);
-                const glm::vec4 oldColor{ fb_buffer[y][x] };
-                auto finalColor = glm::vec4(newColor * weightNew, 1.0) + oldColor * weightOld;
+                const glm::vec3 oldColor{ fb_buffer[y][x] };
+                auto finalColor = glm::vec4{ newColor * weightNew + oldColor * weightOld, 1.0f };
 
                 wnd_buffer[y][x] = pixel{ finalColor };
                 fb_buffer[y][x] = finalColor;
@@ -75,23 +78,32 @@ class render_scheduler : public scheduler<render_scheduler> {
 	
     bool main_run()
 	{
-        bool should_run = wnd.update();
-    	
-		auto deltaTime = time_now() - time;
-        time = time_now();
-		auto framesPerSecond = 1.0 / deltaTime;
-        std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod: "
-            << productive_frame_time * 1000.0 << "ms\n";
-        productive_frame_time = 0.0;
-        ++frameIdx;
+		const bool should_run = wnd.update();
 
-        cam_controller.update(wnd, deltaTime);
-    	if (wnd.resized())
-    	{
-            fb.update_size(wnd.width(), wnd.height());
-    	}
+		const auto deltaTime = time_now() - time;
+    	// Update frame time
+        {
+            time = time_now();
+            const auto framesPerSecond = 1.0 / deltaTime;
+            std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod: "
+                << productive_frame_time * 1000.0 << "ms\n";
+            productive_frame_time = 0.0;
+            ++frameIdx;
+        }
+        // Update window and view
+        {
+            cam_controller.update(wnd, deltaTime);
+            if (wnd.resized())
+            {
+                fb.update_size(wnd.width(), wnd.height());
+            }
+            worker_scanline_count = wnd.height() / worker_count() + (wnd.height() % worker_count() > 0);
+        }
+        // Save dialog
+        if (wnd.is_key_pressed('p')) {
+            save_render_dialog(fb);
+        }
     	
-        worker_scanline_count = wnd.height() / worker_count() + (wnd.height() % worker_count() > 0);
         return should_run;
     }
 public:
@@ -99,6 +111,10 @@ public:
         wnd{ "CPU Raytracer", 800, 608 }
     {
         fb.update_size(wnd.width(), wnd.height());
+        if (NFD::Init() != NFD_OKAY)
+        {
+            throw std::runtime_error("Failed to initialize File Dialog library");
+        }
     }
 
 	void add(raytraceable* obj)
@@ -113,25 +129,25 @@ int main() {
 
     render_scheduler mgr;
 
-    lambertian_material floor{ {0.7, 0.7, 0.7} };
+    const lambertian_material floor{ {0.7, 0.7, 0.7} };
     mgr.add(new single_sided<plane>(floor, transform{ {0, 0.05, 0}, {0,0,0}, {1,1,1} }));
 
-    dielectric_material glass{ 1.5f };
+    const dielectric_material glass{ 1.5f };
     mgr.add(new sphere(glass, transform{ {1.1, -1, 0},{0, 0, 0}, {1, 1, 1} }));
     mgr.add(new inverted_facing<sphere>(glass, transform{ {1.1, -1, 0},{0, 0, 0}, {0.95, 0.95, 0.95} }));
 
-    metallic_material gold{ {1.0f, 0.84f, 0.0f}, 0.0f };
+    const metallic_material gold{ {1.0f, 0.84f, 0.0f}, 0.0f };
     mgr.add(new sphere{ gold, {{ -1.1, -1, 0 }, { 0,0,0 }, { 1,1,1 }} });
 
-    lambertian_material wall1{ {0.7, 0.3, 0.3} };
+    const lambertian_material wall1{ {0.7, 0.3, 0.3} };
     mgr.add(new rectangle(wall1, {{ 3, -1.45, -2 }, { degToRad(90.0f),degToRad(-45.0f),0 }, { 1,1,1.5 }}));
-    metallic_material wall2{ {0.95, 0.95, 0.95}, 0.03f };
+    const metallic_material wall2{ {0.95, 0.95, 0.95}, 0.03f };
     mgr.add(new rectangle(wall2, { { -3, -1.45, -2 }, { degToRad(90.0f),degToRad(45.0f),0 }, { 1,1,1.5 } }));
 
-    lambertian_material blue{ {0.2, 0.2, 0.6} };
+    const lambertian_material blue{ {0.2, 0.2, 0.6} };
     mgr.add(new sphere(blue, {{ 0, -5, -10 }, { 0, 0, 0 }, { 5, 5, 5 }}));
-	
-    mgr.run();
 
+	mgr.run();
+	
     return 0;
 }

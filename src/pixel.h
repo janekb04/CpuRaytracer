@@ -14,7 +14,7 @@ public:
         r{ r },
         a{ a } {
     }
-    constexpr explicit pixel(glm::vec4 col) noexcept :
+    constexpr explicit pixel(const glm::vec4& col) noexcept :
         b{ static_cast<component_t>(col.b * conversion_factor) },
         g{ static_cast<component_t>(col.g * conversion_factor) },
         r{ static_cast<component_t>(col.r * conversion_factor) },
@@ -22,6 +22,14 @@ public:
     }
     explicit operator glm::vec4() const noexcept {
         return glm::vec4{ r, g, b, a } / conversion_factor;
+    }
+	constexpr pixel& operator=(const glm::vec4& col) noexcept
+    {
+        return *this = pixel{ col };
+    }
+	constexpr pixel to_rgba() const noexcept
+    {
+        return pixel{ b, g, r, a };
     }
 };
 #endif // PIXEL_H

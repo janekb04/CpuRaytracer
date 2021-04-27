@@ -15,12 +15,12 @@ namespace detail {
     public:
         constexpr static size_t rank = sizeof...(Is) + 1;
         T* const data;
-        const size_t product;
+        const size_t size;
         const size_t extents[rank];
 
         explicit array_wrapper_impl(T* data, size_t first, alwaysT<Is, size_t>... _extents) :
             data{ data },
-            product{ (rank == 1 ? -1 : 0) + (_extents * ... * 1) },
+            size{ (rank == 1 ? -1 : 0) + (_extents * ... * 1) },
             extents{ first, _extents... } {
         }
 
@@ -29,7 +29,7 @@ namespace detail {
                 return data[idx];
             }
             else {
-                return array_wrapper<T, rank - 1>{data + product * idx, extents[Is]...};
+                return array_wrapper<T, rank - 1>{data + size * idx, extents[Is]...};
             }
         }
     };

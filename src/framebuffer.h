@@ -20,5 +20,13 @@ public:
 	{
 		return array_wrapper<glm::vec4, 2>{m_buffer.get(), m_height, m_width};
 	}
+	[[nodiscard]] size_t width() const
+	{
+		return m_width;
+	}
+	[[nodiscard]] size_t height() const
+	{
+		return m_height;
+	}
 };
 #endif // FRAMEBUFFER_H
