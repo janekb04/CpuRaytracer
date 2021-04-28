@@ -28,7 +28,7 @@ public:
 	}
 	ray get_ray(float u, float v) const
 	{
-		return ray(trans.get_position(), normalize(lower_left_corner + u * horizontal + v * vertical));
+		return ray{ trans.get_position(), normalize(lower_left_corner + u * horizontal + v * vertical) };
 	}
 };
 #endif // CAMERA_H

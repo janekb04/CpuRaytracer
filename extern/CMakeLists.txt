@@ -10,3 +10,5 @@ add_subdirectory(nativefiledialog-extended)
 # STB
 add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE stb)
+# Boxer
+add_subdirectory(Boxer)

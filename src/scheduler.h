@@ -43,7 +43,7 @@ public:
 	scheduler(size_t worker_count = std::thread::hardware_concurrency()) :
 		workers{ worker_count },
 		should_run{ true },
-		sync{ worker_count, { *this } }
+		sync{ static_cast<ptrdiff_t>(worker_count), { *this } }
 	{
 	}
 
