@@ -5,7 +5,7 @@
 [[nodiscard]] inline double time_now() noexcept
 {
     return static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::high_resolution_clock::now().time_since_epoch()).count()) / 10e9;
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count()) / 1e9;
 }
 
 [[nodiscard]] int init_seed() noexcept

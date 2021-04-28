@@ -85,8 +85,8 @@ class render_scheduler : public scheduler<render_scheduler> {
         {
             time = time_now();
             const auto framesPerSecond = 1.0 / deltaTime;
-            std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod: "
-                << productive_frame_time * 1000.0 << "ms\n";
+            std::cout << framesPerSecond << " FPS, " << "Real: " << deltaTime * 1000.0 << "ms, Prod total: "
+                << productive_frame_time * 1000.0 << "ms, Prod per thread: " << productive_frame_time * 1000.0 / worker_count() << "ms\n";
             productive_frame_time = 0.0;
             ++frameIdx;
         }
@@ -103,6 +103,8 @@ class render_scheduler : public scheduler<render_scheduler> {
         if (wnd.is_key_pressed('p')) {
             save_render_dialog(fb);
         }
+    	// Disable synchronization
+        enable_synchronization = cam_controller.frames_still() <= 20;
     	
         return should_run;
     }

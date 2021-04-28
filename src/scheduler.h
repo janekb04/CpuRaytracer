@@ -30,7 +30,10 @@ class scheduler
 	{
 		holder_or_void init_data{ &CRTP::worker_init, static_cast<CRTP*>(this), idx };
 		while (should_run) {
-			sync.arrive_and_wait();
+			if (enable_synchronization)
+			{
+				sync.arrive_and_wait();
+			}
 			init_data.invoke(&CRTP::worker_run, static_cast<CRTP*>(this), idx);
 		}
 	}
@@ -43,7 +46,8 @@ public:
 	scheduler(size_t worker_count = std::thread::hardware_concurrency()) :
 		workers{ worker_count },
 		should_run{ true },
-		sync{ static_cast<ptrdiff_t>(worker_count), { *this } }
+		sync{ static_cast<ptrdiff_t>(worker_count), { *this } },
+		enable_synchronization{true}
 	{
 	}
 
@@ -55,8 +59,15 @@ public:
 		}
 		while (should_run)
 		{
-			std::unique_lock lk{ render_main_sync };
-			should_run = static_cast<CRTP*>(this)->main_run();
+			if(enable_synchronization)
+			{
+				std::unique_lock lk{ render_main_sync };
+				should_run = static_cast<CRTP*>(this)->main_run();
+			}
+			else
+			{
+				should_run = static_cast<CRTP*>(this)->main_run();
+			}
 		}
 		for (auto& worker : workers) {
 			worker.join();
@@ -64,6 +75,7 @@ public:
 		workers.clear();
 	}
 protected:
+	std::atomic<bool> enable_synchronization;
 	[[nodiscard]] size_t worker_count() const noexcept
 	{
 		return workers.size();
