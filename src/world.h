@@ -9,6 +9,7 @@
 class world
 {
 	std::vector<std::unique_ptr<raytraceable>> objects;
+	texture<glm::vec3> hdri;
 
 	struct trace_result
 	{
@@ -19,10 +20,13 @@ class world
 		std::optional<ray> scattered;
 	};
 	
-	[[nodiscard]] static glm::vec4 backdrop(const glm::vec3& dir) noexcept
+	[[nodiscard]] glm::vec3 backdrop(const glm::vec3& dir) const noexcept
 	{
-		const auto t = 0.5f * (dir.y + 1.0f);
-		return { (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0), 1.0 };
+		const glm::vec2 invAtan = glm::vec2(0.1591, 0.3183);
+		glm::vec2 uv = glm::vec2(atan2f(dir.z, dir.x), asinf(dir.y));
+		uv *= invAtan;
+		uv += 0.5;
+		return hdri.sample( uv.x, uv.y);
 	}
 	[[nodiscard]] trace_result trace_single(const ray& r, float min_t, float max_t, int& seed) const noexcept
 	{
@@ -68,6 +72,11 @@ class world
 		};
 	}
 public:
+	explicit world(texture<glm::vec3> hdri) noexcept :
+		hdri(std::move(hdri))
+	{
+	}
+	
 	[[nodiscard]] glm::vec3 raytrace(const ray& r, int depth, int& seed) const noexcept
 	{
 		if (depth <= 0)

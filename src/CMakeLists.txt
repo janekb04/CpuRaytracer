@@ -1,4 +1,4 @@
-add_executable(Engine "main.cpp" "array_wrapper.h" "window.h" "camera_controller.h" "transform.h" "duplex.h" "ray.h" "utility.h" "pixel.h"  "camera.h" "scheduler.h" "holder_or_void.h" "raytraceable.h" "world.h" "material.h" "framebuffer.h" "save_render_dialog.h" "stb_impl.cpp")
+add_executable(Engine "main.cpp" "array_wrapper.h" "window.h" "camera_controller.h" "transform.h" "duplex.h" "ray.h" "utility.h" "pixel.h"  "camera.h" "scheduler.h" "holder_or_void.h" "raytraceable.h" "world.h" "material.h"  "save_render_dialog.h" "stb_impl.cpp"  "hdri.h" "cpp_malloc.cpp" "cpp_malloc.h")
 target_link_libraries(Engine PRIVATE glm)
 target_link_libraries(Engine PRIVATE minifb)
 target_link_libraries(Engine PRIVATE nfd)

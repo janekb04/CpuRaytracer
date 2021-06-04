@@ -15,7 +15,8 @@
 #include "ray.h"
 #include "utility.h"
 #include "camera.h"
-#include "framebuffer.h"
+#include "hdri.h"
+#include "texture.h"
 #include "scheduler.h"
 #include "world.h"
 #include "save_render_dialog.h"
@@ -24,7 +25,7 @@ class render_scheduler : public scheduler<render_scheduler> {
     friend class scheduler<render_scheduler>;
 
 	window wnd;
-    framebuffer fb;
+    texture<glm::vec4> framebuffer;
     world world_;
     camera cam;
     orbit_camera_controller cam_controller{cam};
@@ -51,7 +52,7 @@ class render_scheduler : public scheduler<render_scheduler> {
         const int xEnd = wnd.width();
         const float xMax = wnd.width() - 1;
         auto wnd_buffer = wnd.buffer();
-        auto fb_buffer = fb.buffer();
+        auto fb_buffer = framebuffer.buffer();
         const auto weightNew = 1.0f / static_cast<float>(cam_controller.frames_still() + 1);
         const auto weightOld = 1.0f - weightNew;
         const auto pixelWidth = 1.0f / xMax;
@@ -95,13 +96,13 @@ class render_scheduler : public scheduler<render_scheduler> {
             cam_controller.update(wnd, deltaTime);
             if (wnd.resized())
             {
-                fb.update_size(wnd.width(), wnd.height());
+                framebuffer.update_size(wnd.width(), wnd.height());
             }
             worker_scanline_count = wnd.height() / worker_count() + (wnd.height() % worker_count() > 0);
         }
         // Save dialog
         if (wnd.is_key_pressed('p')) {
-            save_render_dialog(fb);
+            save_render_dialog(framebuffer);
         }
     	// Disable synchronization
         enable_synchronization = cam_controller.frames_still() <= 20;
@@ -110,9 +111,10 @@ class render_scheduler : public scheduler<render_scheduler> {
     }
 public:
     render_scheduler() :
-        wnd{ "CPU Raytracer", 800, 608 }
+        wnd{ "CPU Raytracer", 800, 608 },
+		world_{read_hdri("C:\\dev\\CpuRaytracer\\res\\hdri.hdr")} // TODO: make this a general path
     {
-        fb.update_size(wnd.width(), wnd.height());
+        framebuffer.update_size(wnd.width(), wnd.height());
         if (NFD::Init() != NFD_OKAY)
         {
             throw std::runtime_error("Failed to initialize File Dialog library");
@@ -128,11 +130,12 @@ public:
 
 int main() {
     std::cout << std::setprecision(2) << std::fixed;
+    std::cout << "Working directory: " << std::filesystem::current_path() << '\n';
 
     render_scheduler mgr;
 
     const lambertian_material floor{ {0.7, 0.7, 0.7} };
-    mgr.add(new single_sided<plane>(floor, transform{ {0, 0.05, 0}, {0,0,0}, {1,1,1} }));
+    mgr.add(new single_sided<plane>(floor, transform{ {0, 0.2, 0}, {0,0,0}, {1,1,1} }));
 
     const dielectric_material glass{ 1.5f };
     mgr.add(new sphere(glass, transform{ {1.1, -1, 0},{0, 0, 0}, {1, 1, 1} }));
