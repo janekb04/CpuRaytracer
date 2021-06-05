@@ -130,4 +130,5 @@ Arithmetic sqr(const Arithmetic& x)
 {
     return x * x;
 }
+
 #endif // UTILITY_H

@@ -20,6 +20,7 @@
 #include "scheduler.h"
 #include "world.h"
 #include "save_render_dialog.h"
+#include "color.h"
 
 class render_scheduler : public scheduler<render_scheduler> {
     friend class scheduler<render_scheduler>;
@@ -69,7 +70,7 @@ class render_scheduler : public scheduler<render_scheduler> {
                 const glm::vec3 oldColor{ fb_buffer[y][x] };
                 auto finalColor = glm::vec4{ newColor * weightNew + oldColor * weightOld, 1.0f };
 
-                wnd_buffer[y][x] = pixel{ finalColor };
+                wnd_buffer[y][x] = pixel{ tonemap(finalColor) };
                 fb_buffer[y][x] = finalColor;
             }
         }
@@ -112,7 +113,7 @@ class render_scheduler : public scheduler<render_scheduler> {
 public:
     render_scheduler() :
         wnd{ "CPU Raytracer", 800, 608 },
-		world_{read_hdri("C:\\dev\\CpuRaytracer\\res\\hdri.hdr")} // TODO: make this a general path
+		world_{read_hdri("C:\\dev\\CpuRaytracer\\res\\hdri.hdr"), 5.0} // TODO: make this a general path
     {
         framebuffer.update_size(wnd.width(), wnd.height());
         if (NFD::Init() != NFD_OKAY)
@@ -135,21 +136,21 @@ int main() {
     render_scheduler mgr;
 
     const lambertian_material floor{ {0.7, 0.7, 0.7} };
-    mgr.add(new single_sided<plane>(floor, transform{ {0, 0.2, 0}, {0,0,0}, {1,1,1} }));
+    mgr.add(new single_sided<plane>(floor, transform{ {0, 0.1, 0}, {0,0,0}, {1,1,1} }));
 
     const dielectric_material glass{ 1.5f };
     mgr.add(new sphere(glass, transform{ {1.1, -1, 0},{0, 0, 0}, {1, 1, 1} }));
     mgr.add(new inverted_facing<sphere>(glass, transform{ {1.1, -1, 0},{0, 0, 0}, {0.95, 0.95, 0.95} }));
 
-    const metallic_material gold{ {1.0f, 0.84f, 0.0f}, 0.0f };
+    const metallic_material gold{ {0.5f, 0.4f, 0.0f}, 0.0f };
     mgr.add(new sphere{ gold, {{ -1.1, -1, 0 }, { 0,0,0 }, { 1,1,1 }} });
 
-    const lambertian_material wall1{ {0.7, 0.3, 0.3} };
+    const lambertian_material wall1{ {0.2, 0.02, 0.02} };
     mgr.add(new rectangle(wall1, {{ 3, -1.45, -2 }, { degToRad(90.0f),degToRad(-45.0f),0 }, { 1,1,1.5 }}));
     const metallic_material wall2{ {0.95, 0.95, 0.95}, 0.03f };
     mgr.add(new rectangle(wall2, { { -3, -1.45, -2 }, { degToRad(90.0f),degToRad(45.0f),0 }, { 1,1,1.5 } }));
 
-    const lambertian_material blue{ {0.2, 0.2, 0.6} };
+    const lambertian_material blue{ {0.02, 0.02, 0.25} };
     mgr.add(new sphere(blue, {{ 0, -5, -10 }, { 0, 0, 0 }, { 5, 5, 5 }}));
 
 	mgr.run();

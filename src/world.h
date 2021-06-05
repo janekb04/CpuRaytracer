@@ -10,6 +10,7 @@ class world
 {
 	std::vector<std::unique_ptr<raytraceable>> objects;
 	texture<glm::vec3> hdri;
+	float hdri_strength;
 
 	struct trace_result
 	{
@@ -26,7 +27,7 @@ class world
 		glm::vec2 uv = glm::vec2(atan2f(dir.z, dir.x), asinf(dir.y));
 		uv *= invAtan;
 		uv += 0.5;
-		return hdri.sample( uv.x, uv.y);
+		return hdri.sample( uv.x, uv.y) * hdri_strength;
 	}
 	[[nodiscard]] trace_result trace_single(const ray& r, float min_t, float max_t, int& seed) const noexcept
 	{
@@ -72,8 +73,9 @@ class world
 		};
 	}
 public:
-	explicit world(texture<glm::vec3> hdri) noexcept :
-		hdri(std::move(hdri))
+	explicit world(texture<glm::vec3> hdri, float hdri_strength) noexcept :
+		hdri(std::move(hdri)),
+		hdri_strength{hdri_strength}
 	{
 	}
 	
